@@ -1,14 +1,14 @@
 SOURCE := webd.c utils.c
 
 CC := gcc
-CFLAGS := -Wextra -Wall -Werror -O2
+CFLAGS := -Wextra -Wall -Werror
 DEBUG := -g
 
 debug:
 	$(CC) $(SOURCE) $(CFLAGS) $(DEBUG) -o webd
 
 release:
-	$(CC) $(SOURCE) $(CFLAGS) -o webd
+	$(CC) $(SOURCE) $(CFLAGS) -O2 -o webd
 
 all: debug
 
