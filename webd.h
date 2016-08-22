@@ -7,15 +7,15 @@
 // socket headers
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
 #include <netdb.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
-
-extern int g_port;
-extern struct addrinfo *server_info;
-extern int socket_fd;
+#include <sys/types.h>
+#include <unistd.h>
 
 struct addrinfo *setup_server();
 char *port_str();
+void handle_connection(int *);
