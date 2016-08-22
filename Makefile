@@ -1,4 +1,4 @@
-SOURCE := webd.c
+SOURCE := webd.c utils.c
 
 CC := gcc
 CFLAGS := -Wextra -Wall -Werror -O2
@@ -13,4 +13,4 @@ release:
 all: debug
 
 clean:
-	rm -rf *.o webd
+	rm -rf *.o webd webd.dSYM
