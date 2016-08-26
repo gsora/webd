@@ -81,12 +81,42 @@ int main(int argc, char **argv) {
 
 }
 
+// send_data sends data to the socket associated with the file descriptor
+int send_data(int *fd, char *data) {
+	int sVal = send(*fd, (const void*)data, strlen(data), 0);
+	return sVal;
+}
+
+// recive recives data from the socket associated with the file descriptor
+recv_data *recive(int *fd) {
+	recv_data *session = (recv_data *)malloc(sizeof(recv_data));
+
+	void *buf = (void *)malloc(3000);
+	int recvd = recv(*fd, buf, 3000, 0);
+	
+	session->data = (char *)buf;
+	session->recv_chars = recvd;
+
+	free(buf);
+
+	return session;
+}
+
 void handle_connection(int *fd) {
 
 	printf("server: got connection from %s\n", s);
 
-	if (send(*fd, "Hello, world!", 13, 0) == -1)
-		perror("send");
+	if(send_data(fd, "Hello, world!\n") == -1) {
+		fprintf(stderr, "error :: send_data failed with error -> %s\n", strerror(errno));
+	}
+
+	recv_data *session = recive(fd);
+
+	if(strlen(session->data) == 1) {
+		fprintf(stdout, "status :: peer tried to send a message, but nothing was recv'd\n");
+	} else {
+		fprintf(stdout, "status :: got message from peer -> %s\n", session->data);
+	}
 
 	close(*fd);
 

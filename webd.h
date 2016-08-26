@@ -4,6 +4,11 @@
 
 #include "utils.h"
 
+typedef struct recv_data {
+	char *data;
+	int recv_chars;
+} recv_data;
+
 // socket headers
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -19,3 +24,5 @@
 struct addrinfo *setup_server();
 char *port_str();
 void handle_connection(int *);
+int send_data(int*, char*);
+recv_data *recive(int*);
