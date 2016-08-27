@@ -9,6 +9,17 @@ typedef struct recv_data {
 	int recv_chars;
 } recv_data;
 
+typedef struct parameter {
+	char *param_name;
+	char * content;
+} parameter;
+
+typedef struct parameter_container {
+	char *http_header;
+	int size;
+	parameter **parameters;
+} parameter_container;
+
 // socket headers
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -22,7 +33,7 @@ typedef struct recv_data {
 #include <unistd.h>
 
 struct addrinfo *setup_server();
-char *port_str();
 void handle_connection(int *);
-int send_data(int*, char*);
-recv_data *recive(int*);
+int send_data(int *, char *);
+recv_data *recive(int *);
+parameter_container *split_headers(char *);

@@ -71,9 +71,10 @@ int main(int argc, char **argv) {
 			continue; 
 		}
 
-	inet_ntop(input_addr.ss_family, get_in_addr((struct sockaddr *)&input_addr), s, sizeof s);
+		inet_ntop(input_addr.ss_family, get_in_addr((struct sockaddr *)&input_addr), s, sizeof s);
 
 		if (!fork()) {
+			// new connection, increment
 			handle_connection(&new_fd);
 		}
 		close(new_fd);
@@ -93,7 +94,7 @@ recv_data *recive(int *fd) {
 
 	void *buf = (void *)malloc(3000);
 	int recvd = recv(*fd, buf, 3000, 0);
-	
+
 	session->data = (char *)buf;
 	session->recv_chars = recvd;
 
@@ -103,10 +104,9 @@ recv_data *recive(int *fd) {
 }
 
 void handle_connection(int *fd) {
+	printf("status :: got connection from %s\n", s);
 
-	printf("server: got connection from %s\n", s);
-
-	if(send_data(fd, "Hello, world!\n") == -1) {
+	if(send_data(fd, "<h1>Hello, world!</h1>\n") == -1) {
 		fprintf(stderr, "error :: send_data failed with error -> %s\n", strerror(errno));
 	}
 
@@ -115,12 +115,64 @@ void handle_connection(int *fd) {
 	if(strlen(session->data) == 1) {
 		fprintf(stdout, "status :: peer tried to send a message, but nothing was recv'd\n");
 	} else {
-		fprintf(stdout, "status :: got message from peer -> %s\n", session->data);
+		parameter_container *ret = split_headers(session->data);
+		printf("status :: request type -> %s\n", ret->http_header);
+		printf("status :: headers ->\n");
+		int i;
+		for(i = 0; i < ret->size; i++) {
+			printf("\theader :: %s: %s\n", ret->parameters[i]->param_name, ret->parameters[i]->content);
+		}
 	}
 
 	close(*fd);
-
 	exit(0); 
+}
+
+parameter_container *split_headers(char *raw_headers) {
+
+	parameter_container *container = malloc(sizeof(parameter_container));
+
+	char *w_raw_headers = malloc(strlen(raw_headers) + 1);
+	strncpy(w_raw_headers, raw_headers, strlen(raw_headers));
+
+	container->parameters = malloc(0);
+	char *working_copy;
+	char *end_str;
+	int i = 0;
+
+	for(i = 0, working_copy = strtok_r(w_raw_headers, "\r\n", &end_str); working_copy && *working_copy; i++, working_copy = strtok_r(NULL, "\r\n", &end_str)) {
+
+		if(strstr(working_copy, "HTTP/1.1")) {
+			container->http_header = strdup(working_copy);
+			i = -1;
+		} else {
+			container->parameters = realloc(container->parameters, (sizeof(parameter) * sizeof(container->parameters) + 1));
+			container->parameters[i] = malloc(sizeof(parameter));
+
+			parameter *p = malloc(sizeof(parameter));
+
+			char *header_part;
+			char *end_inner_str;
+			int a = 0;
+			for(header_part = strtok_r(working_copy, " :", &end_inner_str); header_part && *header_part; a++, header_part = strtok_r(NULL, " :", &end_inner_str)) {
+				if(a == 0) {
+					p->param_name = strdup(header_part);
+				} else {
+					p->content = strdup(header_part);
+				}
+			}
+
+			container->parameters[i] = p;
+		}
+		working_copy = NULL;
+	}
+
+
+
+	container->size = i;
+
+	free(w_raw_headers);
+	return container;
 }
 
 struct addrinfo *setup_server() {
@@ -134,7 +186,7 @@ struct addrinfo *setup_server() {
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 
-	if ((status = getaddrinfo(NULL, port_str(), &hints, &servinfo)) != 0) {
+	if ((status = getaddrinfo(NULL, intstr(g_port), &hints, &servinfo)) != 0) {
 		fprintf(stderr, "error :: getaddrinfo error -> %s\n", gai_strerror(status));
 		return NULL;
 	}
@@ -142,9 +194,4 @@ struct addrinfo *setup_server() {
 	return servinfo;
 }
 
-char *port_str() {
-	int length = snprintf(NULL, 0, "%d", g_port) + 2;
-	char *portstr = malloc(length);
-	snprintf(portstr, length, "%d", g_port);
-	return portstr;
-}
+
