@@ -16,6 +16,8 @@ typedef struct parameter {
 
 typedef struct parameter_container {
 	char *http_header;
+	char *http_method;
+	char *request_path;
 	int size;
 	parameter **parameters;
 } parameter_container;

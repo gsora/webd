@@ -116,7 +116,9 @@ void handle_connection(int *fd) {
 		fprintf(stdout, "status :: peer tried to send a message, but nothing was recv'd\n");
 	} else {
 		parameter_container *ret = split_headers(session->data);
-		printf("status :: request type -> %s\n", ret->http_header);
+		printf("status :: request type string -> %s\n", ret->http_header);
+		printf("status :: request method -> %s\n", ret->http_method);
+		printf("status :: request path -> %s\n", ret->request_path);
 		printf("status :: headers ->\n");
 		int i;
 		for(i = 0; i < ret->size; i++) {
@@ -144,6 +146,18 @@ parameter_container *split_headers(char *raw_headers) {
 
 		if(strstr(working_copy, "HTTP/1.1")) {
 			container->http_header = strdup(working_copy);
+
+			char *http_request_end;
+			char *req_data;
+			int k = 0;
+			for(req_data = strtok_r(working_copy, " ", &http_request_end); http_request_end && *http_request_end; k++, req_data = strtok_r(NULL, " ", &http_request_end)) {
+				if(k == 0) {
+					container->http_method = strdup(req_data);
+				} else {
+					container->request_path = strdup(req_data);
+				}
+			}
+
 			i = -1;
 		} else {
 			container->parameters = realloc(container->parameters, (sizeof(parameter) * sizeof(container->parameters) + 1));
