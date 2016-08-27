@@ -11,3 +11,4 @@
 
 int detect_port_arg(int argc, char **argv);
 void *get_in_addr(struct sockaddr *sa); 
+char *intstr(int);

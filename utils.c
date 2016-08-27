@@ -31,3 +31,9 @@ int detect_port_arg(int argc, char **argv) {
 	return g_port;
 }
 
+char *intstr(int i) {
+	int length = snprintf(NULL, 0, "%d", i) + 2;
+	char *portstr = (char *)malloc(length);
+	snprintf(portstr, length, "%d", i);
+	return portstr;
+}
