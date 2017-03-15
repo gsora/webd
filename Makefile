@@ -1,4 +1,4 @@
-SOURCE := webd.c utils.c
+SOURCE := webd.c utils.c parameter_container.h parameter_container.c
 
 CC := gcc
 CFLAGS := -Wextra -Wall -Werror
