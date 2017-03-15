@@ -172,19 +172,23 @@ parameter_container *split_headers(char *raw_headers) {
 	}
       }
     } else if(empty_flag != 1) { // it's an HTTP header
-      char *header_part;
+      char *header_part = working_copy;
+      char *end_inner_str = working_copy;
+      
       char *header_name;
       char *header_content;
-      char *end_inner_str;
       int a = 0;
-      for(header_part = strtok_r(working_copy, " :", &end_inner_str); header_part && *header_part; a++, header_part = strtok_r(NULL, " :", &end_inner_str)) {
+      while(header_part != NULL) {
+	strsep(&end_inner_str, ":");
 	if(a == 0) {
 	  header_name = strdup(header_part);
 	} else {
 	  header_content = strdup(header_part);
 	}
+	header_part = end_inner_str;
+	a++;
       }
-
+      
       pc_write_header(container, header_name, header_content, i);
       i++;
     }
