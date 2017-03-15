@@ -3,24 +3,7 @@
 #define BACKLOG 20
 
 #include "utils.h"
-
-typedef struct recv_data {
-	char *data;
-	int recv_chars;
-} recv_data;
-
-typedef struct parameter {
-	char *param_name;
-	char * content;
-} parameter;
-
-typedef struct parameter_container {
-	char *http_header;
-	char *http_method;
-	char *request_path;
-	int size;
-	parameter **parameters;
-} parameter_container;
+#include "parameter_container.h"
 
 // socket headers
 #include <sys/types.h>
@@ -38,4 +21,3 @@ struct addrinfo *setup_server();
 void handle_connection(int *);
 int send_data(int *, char *);
 recv_data *recive(int *);
-parameter_container *split_headers(char *);
