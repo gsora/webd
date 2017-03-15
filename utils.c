@@ -37,3 +37,12 @@ char *intstr(int i) {
 	snprintf(portstr, length, "%d", i);
 	return portstr;
 }
+
+char *trim_first_n_chars(char *str, int n) {
+  if((int)strlen(str) < n) {
+    return NULL;
+  }
+  char *dest = malloc((strlen(str) - n) * sizeof(char));
+  sprintf(dest, "%.*s", (int)(n-strlen(str)), str+n);
+  return dest;
+}
