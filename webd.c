@@ -93,9 +93,10 @@ recv_data *recive(int *fd) {
   recv_data *session = (recv_data *)malloc(sizeof(recv_data));
 
   void *buf = (void *)malloc(3000);
+  memset(buf, '\0', sizeof(char)*3000);
   int recvd = recv(*fd, buf, 3000, 0);
   
-  session->data = (char *)buf;
+  session->data = strdup((char *)buf);
   session->recv_chars = recvd;
 
   free(buf);
@@ -124,8 +125,10 @@ void handle_connection(int *fd) {
     for(i = 0; i < ret->size; i++) {
       printf("\theader :: %s: %s\n", ret->parameters[i]->param_name, ret->parameters[i]->content);
     }
+    pc_free(ret);
   }
 
+  free(session->data);
   free(session);
   close(*fd);
   exit(0); 
@@ -142,10 +145,14 @@ struct addrinfo *setup_server() {
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_flags = AI_PASSIVE;
 
-  if ((status = getaddrinfo(NULL, intstr(g_port), &hints, &servinfo)) != 0) {
+  char *str_port = intstr(g_port);
+
+  if ((status = getaddrinfo(NULL, str_port, &hints, &servinfo)) != 0) {
     fprintf(stderr, "error :: getaddrinfo error -> %s\n", gai_strerror(status));
     return NULL;
   }
+
+  free(str_port);
 
   return servinfo;
 }

@@ -19,9 +19,6 @@ void pc_write_header(parameter_container *pc, char *header_name, char *header_co
   //reallocate the parameters array to accomodate another entry
   pc->parameters = realloc(pc->parameters, (sizeof(parameter) * sizeof(pc->parameters) + 1));
 
-  // allocate space for a parameter struct in the newly-allocated space
-  pc->parameters[index] = malloc(sizeof(parameter));
-
   // create a new empty parameter
   parameter *p = pc_new_empty_parameter();
 
@@ -90,8 +87,8 @@ parameter_container *pc_split_headers(char *headers) {
       char *header_part = working_copy;
       char *end_inner_str = working_copy;
       
-      char *header_name;
-      char *header_content;
+      char *header_name = NULL;
+      char *header_content = NULL;
       int a = 0;
       while(header_part != NULL) {
 	strsep(&end_inner_str, ":");
@@ -106,6 +103,9 @@ parameter_container *pc_split_headers(char *headers) {
       
       pc_write_header(container, header_name, header_content, header_number);
       header_number++;
+
+      free(header_name);
+      free(header_content);
     }
     
     working_copy = end_str;
@@ -132,7 +132,7 @@ parameter_container *pc_new_empty_container() {
 
 parameter *pc_new_empty_parameter() {
   // initialize a parameter p to its size
-  parameter *p = malloc(sizeof(parameter));
+  parameter *p = malloc(sizeof(parameter *));
 
   // return it
   return p;
@@ -144,4 +144,20 @@ void pc_parameter_write_param_name(parameter *p, char *param_name) {
 
 void pc_parameter_write_content(parameter *p, char *content) {
   p->content = strdup(content);
+}
+
+void pc_free(parameter_container *pc) {
+  free(pc->http_request_header);
+  free(pc->http_method);
+  free(pc->request_path);
+
+  int i = 0;
+  for(; i != pc->size; i++) {
+    free(pc->parameters[i]->param_name);
+    free(pc->parameters[i]->content);
+    free(pc->parameters[i]);
+  }
+
+  free(pc->parameters);
+  free(pc);
 }
