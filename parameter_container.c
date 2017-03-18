@@ -93,9 +93,18 @@ parameter_container *pc_split_headers(char *headers) {
       while(header_part != NULL) {
 	strsep(&end_inner_str, ":");
 	if(a == 0) {
-	  header_name = strdup(header_part);
+	  if(header_name == NULL) {
+	    header_name = strdup(header_part);
+	  } else {
+	    strcat(header_name, header_part);
+	  }
 	} else {
-	  header_content = strdup(header_part);
+	  if(header_content == NULL) {
+	    header_content = strdup(header_part);
+	  } else {
+	    strcat(header_content, header_part);
+	  }
+
 	}
 	header_part = end_inner_str;
 	a++;
