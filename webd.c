@@ -115,7 +115,7 @@ void handle_connection(int *fd) {
   if(strlen(session->data) == 1) {
     fprintf(stdout, "status :: peer tried to send a message, but nothing was recv'd\n");
   } else {
-    parameter_container *ret = split_headers(session->data);
+    parameter_container *ret = pc_split_headers(session->data);
     printf("status :: request type string -> %s\n", ret->http_request_header);
     printf("status :: request method -> %s\n", ret->http_method);
     printf("status :: request path -> %s\n", ret->request_path);
@@ -128,78 +128,6 @@ void handle_connection(int *fd) {
 
   close(*fd);
   exit(0); 
-}
-
-parameter_container *split_headers(char *raw_headers) {
-
-  parameter_container *container = pc_new_empty_container();
-
-  char *w_raw_headers = malloc(strlen(raw_headers) + 1);
-  strncpy(w_raw_headers, raw_headers, strlen(raw_headers));
-
-  char *working_copy = w_raw_headers, *end_str = w_raw_headers;
-  //char *end_str;
-  int i = 0, rn = 0, empty_flag = 0;
-
-  //for(i = 0, working_copy = strtok_r(w_raw_headers, "\r\n", &end_str); working_copy && *working_copy; i++, working_copy = strtok_r(NULL, "\r\n", &end_str)) {
-  //for(i = 0, working_copy = strsep(&w_raw_headers, "\r\n"); i++;) {
-  while(working_copy != NULL) {
-    strsep(&end_str, "\r\n");
-
-    if(strcmp(working_copy, "") == 0) {
-	rn++;
-	empty_flag = 1;
-    } else {
-      rn = 0;
-      empty_flag = 0;
-    }
-
-    if(rn == 2) {
-      break;
-    }
-    
-    if(strstr(working_copy, "HTTP/1.1")) { // if it's the HTTP header
-      pc_write_http_request_header(container, working_copy);
-
-      char *http_request_end;
-      char *req_data;
-      int k = 0;
-      for(req_data = strtok_r(working_copy, " ", &http_request_end); http_request_end && *http_request_end; k++, req_data = strtok_r(NULL, " ", &http_request_end)) {
-	if(k == 0) {
-	  pc_write_http_method(container, req_data);
-	} else {
-	  pc_write_request_path(container, req_data);
-	}
-      }
-    } else if(empty_flag != 1) { // it's an HTTP header
-      char *header_part = working_copy;
-      char *end_inner_str = working_copy;
-      
-      char *header_name;
-      char *header_content;
-      int a = 0;
-      while(header_part != NULL) {
-	strsep(&end_inner_str, ":");
-	if(a == 0) {
-	  header_name = strdup(header_part);
-	} else {
-	  header_content = strdup(header_part);
-	}
-	header_part = end_inner_str;
-	a++;
-      }
-      
-      pc_write_header(container, header_name, header_content, i);
-      i++;
-    }
-    
-    working_copy = end_str;
-  }
-
-  container->size = i;
-
-  //free(w_raw_headers);
-  return container;
 }
 
 struct addrinfo *setup_server() {
