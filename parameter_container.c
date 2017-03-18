@@ -37,17 +37,26 @@ void pc_write_header(parameter_container *pc, char *header_name, char *header_co
 
 parameter_container *pc_split_headers(char *headers) {
 
+  // initialize an empty container
   parameter_container *container = pc_new_empty_container();
 
+  // create a copy of the headers
   char *w_raw_headers = malloc(strlen(headers) + 1);
   strncpy(w_raw_headers, headers, strlen(headers));
 
+  // initialize all the needed variables to iterate through the string
+  // using strsep
   char *working_copy = w_raw_headers, *end_str = w_raw_headers;
-  int i = 0, rn = 0, empty_flag = 0;
-  
+  int header_number = 0, rn = 0, empty_flag = 0;
+
   while(working_copy != NULL) {
+    // split the line
     strsep(&end_str, "\r\n");
 
+    // if it's an empty line, increment rn and set empty_flag to 1
+    //
+    // empty_flag will be used to see whether to split or not, otherwise
+    // just reset rn and empty_flag to 0
     if(strcmp(working_copy, "") == 0) {
 	rn++;
 	empty_flag = 1;
@@ -56,11 +65,14 @@ parameter_container *pc_split_headers(char *headers) {
       empty_flag = 0;
     }
 
+    // if we found 2 consecutive empty lines, exit: we found the http request body
     if(rn == 2) {
       break;
     }
-    
-    if(strstr(working_copy, "HTTP/1.1")) { // if it's the HTTP header
+
+    // if the current line is the first of an http request, save it to the appropriate
+    // location in the container
+    if(strstr(working_copy, "HTTP/1.1")) {
       pc_write_http_request_header(container, working_copy);
 
       char *http_request_end;
@@ -73,7 +85,8 @@ parameter_container *pc_split_headers(char *headers) {
 	  pc_write_request_path(container, req_data);
 	}
       }
-    } else if(empty_flag != 1) { // it's an HTTP header
+      
+    } else if(empty_flag != 1) { // otherwise, do the same for an header part
       char *header_part = working_copy;
       char *end_inner_str = working_copy;
       
@@ -91,15 +104,17 @@ parameter_container *pc_split_headers(char *headers) {
 	a++;
       }
       
-      pc_write_header(container, header_name, header_content, i);
-      i++;
+      pc_write_header(container, header_name, header_content, header_number);
+      header_number++;
     }
     
     working_copy = end_str;
   }
 
-  container->size = i;
+  container->size = header_number;
 
+  free(w_raw_headers);
+  
   return container;
 
 }
