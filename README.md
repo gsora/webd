@@ -4,7 +4,7 @@ Experimental web server written in C
 ## Purpose
 Learning!
 
-##How to build
+## How to build
 
 A simple 
 
