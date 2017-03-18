@@ -126,6 +126,7 @@ void handle_connection(int *fd) {
     }
   }
 
+  free(session);
   close(*fd);
   exit(0); 
 }
